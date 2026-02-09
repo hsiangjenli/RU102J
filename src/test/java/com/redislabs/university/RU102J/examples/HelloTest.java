@@ -27,9 +27,6 @@ public class HelloTest {
   }
 
   @Test
-  public void sayHello() {}
-
-  @Test
   public void sayHelloThreadSafe() {
     JedisPool jedisPool =
         new JedisPool(new JedisPoolConfig(), HostPort.getRedisHost(), HostPort.getRedisPort());
