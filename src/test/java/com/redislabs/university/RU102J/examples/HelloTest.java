@@ -22,6 +22,8 @@ public class HelloTest {
     String value = jedis.get("hello");
     System.out.println(value);
     assertThat(value, is("world"));
+
+    jedis.close();
   }
 
   @Test
