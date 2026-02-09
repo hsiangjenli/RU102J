@@ -1,16 +1,16 @@
 package com.redislabs.university.RU102J.script;
 
 public enum ScriptOperation {
-    GREATERTHAN(">"),
-    LESSTHAN("<");
+  GREATERTHAN(">"),
+  LESSTHAN("<");
 
-    private final String symbol;
+  private final String symbol;
 
-    ScriptOperation(String symbol) {
-        this.symbol = symbol;
-    }
+  ScriptOperation(String symbol) {
+    this.symbol = symbol;
+  }
 
-    public String getSymbol() {
-        return symbol;
-    }
+  public String getSymbol() {
+    return symbol;
+  }
 }

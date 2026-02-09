@@ -1,11 +1,10 @@
 package com.redislabs.university.RU102J.dao;
 
+import java.time.ZonedDateTime;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
-
-import java.time.ZonedDateTime;
 
 /* A fixed-window rate-limiter.
  *
@@ -29,41 +28,39 @@ import java.time.ZonedDateTime;
  */
 public class RateLimiterFixedDaoRedisImpl implements RateLimiter {
 
-    private final MinuteInterval interval;
-    private final int expiration;
-    private final long maxHits;
-    private final JedisPool jedisPool;
+  private final MinuteInterval interval;
+  private final int expiration;
+  private final long maxHits;
+  private final JedisPool jedisPool;
 
-    public RateLimiterFixedDaoRedisImpl(JedisPool jedisPool,
-                                        MinuteInterval interval, long maxHits) {
-        this.jedisPool = jedisPool;
-        this.interval = interval;
-        this.expiration = interval.getValue() * 60;
-        this.maxHits = maxHits;
+  public RateLimiterFixedDaoRedisImpl(JedisPool jedisPool, MinuteInterval interval, long maxHits) {
+    this.jedisPool = jedisPool;
+    this.interval = interval;
+    this.expiration = interval.getValue() * 60;
+    this.maxHits = maxHits;
+  }
+
+  @Override
+  public void hit(String name) throws RateLimitExceededException {
+    try (Jedis jedis = jedisPool.getResource()) {
+      String key = getKey(name);
+      Pipeline pipeline = jedis.pipelined();
+      Response<Long> hits = pipeline.incr(key);
+      pipeline.expire(key, expiration);
+      pipeline.sync();
+      if (hits.get() > maxHits) {
+        throw new RateLimitExceededException();
+      }
     }
+  }
 
+  private String getKey(String name) {
+    int dayMinuteBlock = getMinuteOfDayBlock(ZonedDateTime.now());
+    return RedisSchema.getRateLimiterKey(name, dayMinuteBlock, maxHits);
+  }
 
-    @Override
-    public void hit(String name) throws RateLimitExceededException {
-        try (Jedis jedis = jedisPool.getResource()) {
-            String key = getKey(name);
-            Pipeline pipeline = jedis.pipelined();
-            Response<Long> hits = pipeline.incr(key);
-            pipeline.expire(key, expiration);
-            pipeline.sync();
-            if (hits.get() > maxHits) {
-                throw new RateLimitExceededException();
-            }
-        }
-    }
-
-    private String getKey(String name) {
-        int dayMinuteBlock = getMinuteOfDayBlock(ZonedDateTime.now());
-        return RedisSchema.getRateLimiterKey(name, dayMinuteBlock, maxHits);
-    }
-
-    private int getMinuteOfDayBlock(ZonedDateTime dateTime) {
-        int minuteOfDay = dateTime.getHour() * 60 + dateTime.getMinute();
-        return minuteOfDay / interval.getValue();
-    }
+  private int getMinuteOfDayBlock(ZonedDateTime dateTime) {
+    int minuteOfDay = dateTime.getHour() * 60 + dateTime.getMinute();
+    return minuteOfDay / interval.getValue();
+  }
 }

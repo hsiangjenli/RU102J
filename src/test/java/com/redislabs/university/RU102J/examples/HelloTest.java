@@ -1,67 +1,72 @@
 package com.redislabs.university.RU102J.examples;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+
 import com.redislabs.university.RU102J.HostPort;
 import org.junit.Test;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-
 public class HelloTest {
 
-    @Test
-    public void sayHelloBasic() {
-        Jedis jedis = new Jedis(HostPort.getRedisHost(), HostPort.getRedisPort());
+  @Test
+  public void sayHelloBasic() {
+    Jedis jedis = new Jedis(HostPort.getRedisHost(), HostPort.getRedisPort());
 
-        if (HostPort.getRedisPassword().length() > 0) {
-            jedis.auth(HostPort.getRedisPassword());
-        }
-
-        jedis.set("hello", "world");
-        String value = jedis.get("hello");
-
-        assertThat(value, is("world"));
+    if (HostPort.getRedisPassword().length() > 0) {
+      jedis.auth(HostPort.getRedisPassword());
     }
 
-    @Test
-    public void sayHello() {
-        Jedis jedis = new Jedis(HostPort.getRedisHost(), HostPort.getRedisPort());
+    jedis.set("hello", "world");
+    String value = jedis.get("hello");
 
-        if (HostPort.getRedisPassword().length() > 0) {
-            jedis.auth(HostPort.getRedisPassword());
-        }
+    assertThat(value, is("world"));
+  }
 
-        String result = jedis.set("hello", "world");
-        assertThat(result, is("OK"));
-        String value = jedis.get("hello");
-        assertThat(value, is("world"));
+  @Test
+  public void sayHello() {
+    Jedis jedis = new Jedis(HostPort.getRedisHost(), HostPort.getRedisPort());
 
-        jedis.close();
+    if (HostPort.getRedisPassword().length() > 0) {
+      jedis.auth(HostPort.getRedisPassword());
     }
 
-    @Test
-    public void sayHelloThreadSafe() {
-        JedisPool jedisPool;
+    String result = jedis.set("hello", "world");
+    assertThat(result, is("OK"));
+    String value = jedis.get("hello");
+    assertThat(value, is("world"));
 
-        String password = HostPort.getRedisPassword();
+    jedis.close();
+  }
 
-        if (password.length() > 0) {
-            jedisPool = new JedisPool(new JedisPoolConfig(),
-                HostPort.getRedisHost(), HostPort.getRedisPort(), 2000, password);
-        } else {
-            jedisPool = new JedisPool(new JedisPoolConfig(),
-                HostPort.getRedisHost(), HostPort.getRedisPort());
-        }
+  @Test
+  public void sayHelloThreadSafe() {
+    JedisPool jedisPool;
 
-        try (Jedis jedis = jedisPool.getResource()) {
-            String result = jedis.set("hello", "world");
-            assertThat(result, is("OK"));
-            String value = jedis.get("hello");
-            assertThat(value, is("world"));
-        }
+    String password = HostPort.getRedisPassword();
 
-        jedisPool.close();
+    if (password.length() > 0) {
+      jedisPool =
+          new JedisPool(
+              new JedisPoolConfig(),
+              HostPort.getRedisHost(),
+              HostPort.getRedisPort(),
+              2000,
+              password);
+    } else {
+      jedisPool =
+          new JedisPool(new JedisPoolConfig(), HostPort.getRedisHost(), HostPort.getRedisPort());
     }
+
+    try (Jedis jedis = jedisPool.getResource()) {
+      String result = jedis.set("hello", "world");
+      assertThat(result, is("OK"));
+      String value = jedis.get("hello");
+      assertThat(value, is("world"));
+    }
+
+    jedisPool.close();
+  }
 }

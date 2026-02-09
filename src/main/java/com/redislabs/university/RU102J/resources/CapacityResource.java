@@ -1,7 +1,6 @@
 package com.redislabs.university.RU102J.resources;
 
 import com.redislabs.university.RU102J.dao.CapacityDao;
-
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -11,18 +10,18 @@ import javax.ws.rs.core.Response;
 @Consumes(MediaType.APPLICATION_JSON)
 public class CapacityResource {
 
-    private final CapacityDao capacityDao;
-    private static final Integer defaultLimit = 10;
+  private final CapacityDao capacityDao;
+  private static final Integer defaultLimit = 10;
 
-    public CapacityResource(CapacityDao capacityDao) {
-        this.capacityDao = capacityDao;
-    }
+  public CapacityResource(CapacityDao capacityDao) {
+    this.capacityDao = capacityDao;
+  }
 
-    @GET
-    @Path("/")
-    public Response getCapacity(@PathParam("limit") Integer limit) {
-        return Response.ok(capacityDao.getReport(defaultLimit))
-                .header("Access-Control-Allow-Origin", "*")
-                .build();
-    }
+  @GET
+  @Path("/")
+  public Response getCapacity(@PathParam("limit") Integer limit) {
+    return Response.ok(capacityDao.getReport(defaultLimit))
+        .header("Access-Control-Allow-Origin", "*")
+        .build();
+  }
 }
