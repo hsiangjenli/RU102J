@@ -16,11 +16,11 @@ public class SiteDaoRedisImpl implements SiteDao {
   // We then store the site's id in a set for easy access.
   @Override
   public void insert(Site site) {
-    try (Jedis jedis = jedisPool.getResource()) {
-      String hashKey = RedisSchema.getSiteHashKey(site.getId());
-      String siteIdKey = RedisSchema.getSiteIDsKey();
-      jedis.hmset(hashKey, site.toMap());
-      jedis.sadd(siteIdKey, hashKey);
+    try (Jedis jedis = jedisPool.getResource()) { // 從連接池中取得一個 Redis 連線
+      String hashKey = RedisSchema.getSiteHashKey(site.getId()); // 生成 Redis 的 Hash key 名稱
+      String siteIdKey = RedisSchema.getSiteIDsKey(); // 存放所有站點 key 的 Set key 名稱（固定）
+      jedis.hmset(hashKey, site.toMap()); // 將完整資訊存入 hash 結構
+      jedis.sadd(siteIdKey, hashKey); // 把新產生的 key 加入 set
     }
   }
 
@@ -41,7 +41,23 @@ public class SiteDaoRedisImpl implements SiteDao {
   @Override
   public Set<Site> findAll() {
     // START Challenge #1
-    return Collections.emptySet();
+    Set<Site> sites = new HashSet<Site>();
+    try (Jedis jedis = jedisPool.getResource()) {
+      String siteIdKey = RedisSchema.getSiteIDsKey();
+      Set<String> siteHashKeys = jedis.smembers(siteIdKey);
+      for (String hashKey : siteHashKeys) {
+        Map<String, String> siteData = jedis.hgetAll(hashKey);
+        // 確認 siteData 不是空值，避免錯誤
+        if (!siteData.isEmpty()) {
+          Site site = new Site();
+          sites.add(site);
+        }
+      }
+      return sites;
+    } catch (Exception e) {
+      e.printStackTrace();
+      return Collections.emptySet();
+    }
     // END Challenge #1
   }
 }
