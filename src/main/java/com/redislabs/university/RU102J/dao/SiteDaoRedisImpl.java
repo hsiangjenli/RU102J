@@ -49,7 +49,7 @@ public class SiteDaoRedisImpl implements SiteDao {
         Map<String, String> siteData = jedis.hgetAll(hashKey);
         // 確認 siteData 不是空值，避免錯誤
         if (!siteData.isEmpty()) {
-          Site site = new Site();
+          Site site = new Site(siteData);
           sites.add(site);
         }
       }
