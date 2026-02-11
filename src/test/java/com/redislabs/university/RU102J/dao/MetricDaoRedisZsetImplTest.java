@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class MetricDaoRedisZsetImplTest extends JedisDaoTestBase {
@@ -45,21 +44,18 @@ public class MetricDaoRedisZsetImplTest extends JedisDaoTestBase {
   }
 
   // Challenge #2
-  @Ignore
   @Test
   public void testSmall() {
     testInsertAndRetrieve(1);
   }
 
   // Challenge #2
-  @Ignore
   @Test
   public void testOneDay() {
     testInsertAndRetrieve(60 * 24);
   }
 
   // Challenge #2
-  @Ignore
   @Test
   public void testMultipleDays() {
     testInsertAndRetrieve(60 * 70);
