@@ -8,6 +8,7 @@ import java.time.ZonedDateTime;
 import java.util.Map;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.Transaction;
 
 public class SiteStatsDaoRedisImpl implements SiteStatsDao {
 
@@ -45,7 +46,7 @@ public class SiteStatsDaoRedisImpl implements SiteStatsDao {
       ZonedDateTime day = reading.getDateTime();
       String key = RedisSchema.getSiteStatsKey(siteId, day);
 
-      updateBasic(jedis, key, reading);
+      updateOptimized(jedis, key, reading);
     }
   }
 
@@ -75,7 +76,23 @@ public class SiteStatsDaoRedisImpl implements SiteStatsDao {
 
   // Challenge #3
   private void updateOptimized(Jedis jedis, String key, MeterReading reading) {
+    // 1. 需要使用 Transaction
+    // 2. 使用使用 lua 的 CompareAndUpdateScript.java
+
     // START Challenge #3
+    Transaction t = jedis.multi();
+    String reportingTime = ZonedDateTime.now(ZoneOffset.UTC).toString();
+    t.hset(key, SiteStats.reportingTimeField, reportingTime);
+    t.hincrBy(key, SiteStats.countField, 1);
+    t.expire(key, weekSeconds);
+
+    // 使用 Lua 進行比對
+    compareAndUpdateScript.updateIfGreater(t, key, SiteStats.maxWhField, reading.getWhGenerated());
+    compareAndUpdateScript.updateIfLess(t, key, SiteStats.minWhField, reading.getWhGenerated());
+    compareAndUpdateScript.updateIfGreater(
+        t, key, SiteStats.maxCapacityField, getCurrentCapacity(reading));
+
+    t.exec();
     // END Challenge #3
   }
 

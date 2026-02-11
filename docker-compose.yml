@@ -14,3 +14,15 @@ services:
       replicas: 1
       restart_policy:
         condition: on-failure
+
+  redis-insight:
+    container_name: redisinsight_ru102j
+    image: "redis/redisinsight:3.0"
+    ports:
+      - "5540:5540"
+    depends_on:
+      - redis
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure

@@ -64,7 +64,6 @@ public class MetricDaoRedisZsetImpl implements MetricDao {
     MeasurementMinute measurement = new MeasurementMinute(value, minuteOfDay);
     // 轉換成 JSON 字串
     String jsonMember = measurement.toString();
-    System.out.println(minuteOfDay);
     // Score = 分鐘數，Member = JSON
     jedis.zadd(metricKey, minuteOfDay, jsonMember);
 
